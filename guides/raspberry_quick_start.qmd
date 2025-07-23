@@ -1,0 +1,153 @@
+---
+title: "Raspberry Pi Quick‑Start for the MADS Network"
+author:
+  - name: "João Gabriel Buttow Albuquerque"
+    affiliations: 
+      - name: "INSA Toulouse"
+date: 07/23/2025
+date-modified: today
+format: html
+# or uncomment the following line to also create PDF format
+# format: 
+#   html:
+#     toc: true
+#   pdf:
+#     toc: true
+draft: true
+categories: [raspberry‑pi, zeroconf, setup]
+abstract: |
+  This guide shows how to bring a brand‑new Raspberry Pi onto the MADS network — from flashing Raspberry Pi OS to installing MADS, enabling ZeroConf, and compiling plugins.
+---
+
+# Motivation
+
+You just bougth a new Raspberry Pi to integrate your MADS network, this can be the first Raspberry Pi in your network or a new one that you want to add. Because you're adding a device, it is nice that each new device follows the same convention / default configurations. So when you have many other Raspberrys they will be standardized and will communicate easily all the other devices in the network.
+
+With this guide, we will give you a set by step on how to configure this new device from scretch and everything you need to set up to start using it in your projects. Always following the same conventions:
+
+-   **Uniform hostnames** for easy identification (`mads-pi-XX`).
+-   **ZeroConf (Avahi)** so you never chase dynamic IP addresses.
+-   **Latest MADS release** plus CMake, ready to compile any plugin.
+
+# Prerequisites
+
+| What you need | Notes |
+|-------------------------------|-----------------------------------------|
+| **Raspberry Pi 4 (64‑bit)** or newer | 4 GB RAM or more recommended |
+| **micro‑SD card** (≥ 8 GB) | Class 10 / UHS‑I |
+| **Computer with SD reader** | To flash the card |
+| **Keyboard, mouse, HDMI monitor** | Only for first boot — you can switch to SSH later |
+| **Internet access** | Wi‑Fi or wired Ethernet |
+
+# Flash Raspberry Pi OS (64‑bit)
+
+To prepare your Pi, you first need to copy an operating system to the micro‑SD card. The quickest method is Raspberry Pi Imager:
+
+-   Install **Raspberry Pi Imager** for Windows, macOS or Linux in your computer. [Download link](https://www.raspberrypi.com/software/)
+-   Launch the Imager, click Choose Device, and select your Pi model. Click Choose OS → Raspberry Pi OS (64‑bit).
+-   Insert the micro‑SD card, click Choose Storage, pick the card, then press Write. Wait until you see “Write successful”.
+-   After the write completes, eject the card safely.
+
+# First Boot Wizard
+
+Insert the micro‑SD, power the Pi, and walk through the on‑screen wizard:
+
+-   Locale : pick your region; tick **Use English language** so the menus match this guide.
+-   User account : create a username (we’ll use `mads` in the examples) and choose a strong password.
+-   Wi‑Fi : select your network and enter the key, or plug in Ethernet.
+-   Updates : let the Pi download system updates; reboot when prompted.
+
+::: callout-note
+On high‑resolution monitors the default interface looks tiny, to enlarge the icons you can go to:
+
+*Raspberry‑menu ▸ Preferences ▸ Appearance Settings ▸ Defaults*
+
+and select "*For large screens"*
+:::
+
+# Enable SSH
+
+Open a terminal (**Ctrl + Alt + T**) and run:
+
+``` bash
+sudo raspi-config
+```
+
+Navigate to **Interface Options** and enable SSH. With this, you will be able to disconnect monitor and keyboard and log in from another computer via:
+
+``` bash
+ssh mads@mads-pi-01.local
+```
+
+::: callout-important
+To do this, both devices must be connected in the same LAN (MADS network of Wi-Fi)
+:::
+
+# Assign the Pi with a unique hostname
+
+Still inside `raspi-config`, lets configure the Pi's hostname. The hostname is the label by which every other node on the MADS network recognizes this Pi. Pick something clear and unique—one name per device—to avoid mix‑ups when data start to flow.
+
+Navigate to **System Options → Hostname** and enter a unique descriptive hostname such as `mads-pi-01`, and accept the reboot.
+
+::: callout-note
+After enabling [ZeroConf (avahi)](https://mads-net.github.io/guides/zeroconf.html) (follow it's guide), the Pi will answer to `mads-pi-01.local` on the LAN. No need to remember its IP address ever again.
+:::
+
+# Verify Connectivity
+
+In order to the Raspberry exchanges information in the network, it still needs an IP address - the Avahi only translates the hostname (`mads-pi-01.local`) to that IP. A DHCP server on your router/switch usually assigns this IP address automatically. So let's verify the the Pi has it's own IP address.
+
+-   Try seeing the IP address configured:
+
+``` bash
+ip addr
+```
+
+Check *eth0* or *wlan0* for a line like *inet 192.168.x.x*.
+
+-   Try the communication with another machine on the same LAN:
+
+``` bash
+ping mads-broker.local
+```
+
+Replies mean DHCP is working and Avahi name resolution is OK.
+
+::: callout-note
+If you don't have a switch that is able to git an IP address to the Raspberry, you have 2 alternatives to set an address to the PI: 1. Run a DHCP Server from the machine with mads-broker 2. Configure manually an IP address to the PI (This is dangerous if you want to connect to other network that has a DHCP server)
+
+Is you opt with the second option, you can use as an example: *Network → Advanced Option → Edit Connections → Wired connection 1 → IPv4 Settings → Manual → Add → 192.168.1.101 / 16 → Save*
+:::
+
+# Install MADS
+
+Open a browser on the Pi and visit the [MADS Releases](https://github.com/pbosetti/MADS/releases) page on GitHub. Scroll to the latest release, locate the file that ends in *Linux‑aarch64.deb*, right‑click it, and copy the download link. In a terminal, type:
+
+``` bash
+wget <copied‑link>
+sudo dpkg -i mads-<version>-Linux-aarch64.deb
+```
+
+Verify installation with:
+
+``` bash
+mads -i
+```
+
+# Install CMake
+
+To be able to setup a agent in the new Pi, we need CMake, it's reponseble of building the plugins and handle their dependencies. CMake lives in the standard Raspberry Pi OS repositories and takes just a minute to install the latest version.
+
+``` bash
+sudo apt update && sudo apt upgrade -y   # refresh packages
+sudo apt install -y cmake                # install CMake
+cmake --version                          # confirm it’s working
+```
+
+The final command should print the CMake version, confirming the installation succeeded.
+
+# You Are Ready!
+
+Your Raspberry Pi now is configured to use **MADS**, answers to **ZeroConf**, and can compile agents and plugins. Clone a plugin, start an agent, and watch your Pi join the network.
+
+Happy testing 🚀
