@@ -1,0 +1,149 @@
+---
+title: "Updating MADS on Every Device"
+author:
+  - name: "João Gabriel Buttow Albuquerque"
+    affiliations: 
+      - name: "INSA Toulouse"
+date: 07/24/2025
+date-modified: today
+format: html
+draft: true
+categories: [mads, update, releases, maintenance]
+abstract: |
+  This short guide shows how to check the latest MADS release, grab the direct
+  download link that `mads -u` prints for your OS, install it, verify the
+  version, and reboot or restart services safely.
+---
+
+# Motivation
+
+Keeping all devices on the **same, current MADS version** avoids random bugs, API mismatches,
+and security holes. Teams often run MADS on **different hardware (servers, Raspberry Pis, laptops)**,
+and skipping an update on just one of them can break the whole network. This guide gives you a **single,
+repeatable procedure** to update each device quickly, verify what you installed, and restart only the
+services you need—so you minimize downtime and confusion.
+
+# TL;DR
+
+1. Check if there is an update and get the download links:
+   ```sh
+   mads -u
+   ```
+2. **Copy the link for your OS/architecture** (as shown by `mads -u`).
+3. On **each device**:
+   ```sh
+   wget <link>
+   sudo dpkg -i <package-file.deb>
+   mads -i
+   ```
+4. **Reboot** the device, or **restart the services** on servers:
+   ```sh
+   sudo reboot
+   # or, on servers
+   sudo systemctl restart mads-broker
+   sudo systemctl restart mads-logger
+   ```
+
+---
+
+# 1. Check if you are up to date (and get the links)
+
+Run:
+
+```sh
+mads -u
+```
+
+This command:
+
+* tells you if you already have the latest MADS version or
+* if a newer version is available. In this case, it prints the **direct download links** for each supported OS/architecture (e.g., `Linux-aarch64`, `Linux-x86_64`).
+
+If you're up to date, everything is good in your device. If a newer release is available, just **copy the link that matches your device**.
+
+::: callout-note
+**Mac OS**       : Darwin-universal
+
+**Raspberry Pi** : Linux-aarch64
+
+**Linux PC**     : Linux-x86_64
+
+**Windows**      : Windows-AMD64
+:::
+---
+
+# 2. Download the right package
+
+On each device, download the `.deb` file using the link you copied from `mads -u`:
+
+```sh
+wget <link>
+```
+
+**Example** made for a Raspberry Pi (Linux-aarch64):
+
+```bash
+wget https://github.com/pbosetti/MADS/releases/download/v1.3.1/mads-1.3.1-Linux-aarch64.deb
+```
+
+::: callout-note
+Alternative (manual):
+
+You can still go to **GitHub → MADS → [Releases](https://github.com/pbosetti/MADS/releases)** and pick the right asset from there, but using `mads -u` is faster and less error‑prone.
+:::
+
+---
+
+# 3. Install
+
+Install the file you just downloaded:
+
+```sh
+sudo dpkg -i <package-file.deb>
+```
+
+**Example** made for a Raspberry Pi (Linux-aarch64):
+
+```bash
+sudo dpkg -i mads-1.3.1-Linux-aarch64.deb
+```
+
+---
+
+# 4. Verify the installed version
+
+```sh
+mads -i
+```
+
+You should see something like:
+
+```
+Mads version: <version number>
+```
+
+---
+
+# 5. Reboot or restart services
+
+**Embedded devices (e.g., Raspberry Pi):**
+
+```sh
+sudo reboot
+```
+
+**Linux servers running only the broker and logger:**
+
+```sh
+sudo systemctl restart mads-broker
+sudo systemctl restart mads-logger
+```
+
+Confirm they are running:
+
+```sh
+sudo systemctl status mads-broker
+sudo systemctl status mads-logger
+```
+
+You should see `active (running)` with a recent time stamp.
