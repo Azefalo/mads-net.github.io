@@ -14,7 +14,7 @@ format: html
 #   pdf:
 #     toc: true
 draft: true
-categories: [raspberry‑pi, zeroconf, setup]
+categories: [raspberry‑pi, basics, zeroconf, setup]
 abstract: |
   This guide shows how to bring a brand‑new Raspberry Pi onto the MADS network — from flashing Raspberry Pi OS to installing MADS, enabling ZeroConf, and compiling plugins.
 ---
