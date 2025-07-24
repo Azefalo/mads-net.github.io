@@ -8,7 +8,7 @@ date: 07/24/2025
 date-modified: today
 format: html
 draft: true
-categories: [mads, update, releases, maintenance]
+categories: [basics, update, releases, maintenance]
 abstract: |
   This short guide shows how to check the latest MADS release, grab the direct
   download link that `mads -u` prints for your OS, install it, verify the
